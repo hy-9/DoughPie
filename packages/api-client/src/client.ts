@@ -26,6 +26,9 @@ import {
   type SsoLinkBody,
   type SsoPending,
   type SsoRegisterBody,
+  type SsoBound,
+  type SsoExchangeBody,
+  type SsoStartResult,
   type Subtask,
   type Task,
   type TaskQuery,
@@ -209,14 +212,18 @@ export class DoughpieClient {
     register: (body: RegisterBody) =>
       this.requestNoAuth<TokenPair>("POST", ROUTES.authRegister, { body }),
     login: (body: LoginBody) => this.requestNoAuth<TokenPair>("POST", ROUTES.authLogin, { body }),
-    logout: () => this.request<void>("POST", ROUTES.authLogout),
+    /** 登出：把当前 refresh 串交给服务端吊销（会话级）；随后清本地 */
+    logout: () =>
+      this.request<void>("POST", ROUTES.authLogout, {
+        body: { refresh_token: this.tokenStore.getRefreshToken() },
+      }),
     logoutAll: () => this.request<void>("POST", ROUTES.authLogoutAll),
     /** SSO 起跳（仅 UC_ENABLED=true 时服务端可用，404 即隐藏入口） */
     ssoStart: (mode: "login" | "bind" = "login") =>
-      this.request<{ authorize_url: string }>("POST", ROUTES.authSsoStart, { body: { mode } }),
+      this.request<SsoStartResult>("POST", ROUTES.authSsoStart, { body: { mode } }),
     /** SSO 回跳换令牌：已绑定→tokens；未绑定→pending 票据走选择页；bind 模式→bound */
-    ssoExchange: async (body: { code: string; state: string }): Promise<SsoExchangeResult> => {
-      const data = await this.requestNoAuth<TokenPair | SsoPending | { bound: true }>(
+    ssoExchange: async (body: SsoExchangeBody): Promise<SsoExchangeResult> => {
+      const data = await this.requestNoAuth<TokenPair | SsoPending | SsoBound>(
         "POST",
         ROUTES.authSsoExchange,
         { body },
