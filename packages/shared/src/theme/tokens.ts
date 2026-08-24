@@ -31,6 +31,7 @@ export const REQUIRED_THEME_TOKENS = [
   "notify-low",
   "mention-pending",
   "mention-acked",
+  "overlay",
   "chart-1",
   "chart-2",
   "chart-3",

@@ -18,10 +18,11 @@ describe("主题契约（ui.md §2/§3）", () => {
     }
   });
 
-  it("色值 token 为合法 hex（radius 除外）", () => {
+  it("色值 token 为合法 hex（radius/overlay 等结构值除外）", () => {
+    const NON_HEX = new Set(["radius", "overlay"]);
     for (const theme of themes.themes) {
       for (const [key, value] of Object.entries(theme.tokens.light)) {
-        if (key === "radius") continue;
+        if (NON_HEX.has(key)) continue;
         expect(value, `${theme.id}/light/${key}`).toMatch(/^#[0-9A-Fa-f]{6}$/);
       }
     }
