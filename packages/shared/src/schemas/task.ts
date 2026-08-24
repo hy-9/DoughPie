@@ -105,6 +105,12 @@ export type UpdateSubtaskBody = z.infer<typeof updateSubtaskBodySchema>;
  */
 export const taskQuerySchema = cursorQuerySchema.extend({
   view: z.enum(["today", "mine", "overdue"]).optional(),
+  /**
+   * 设备本地时区偏移（分钟，同 Date.getTimezoneOffset()：UTC+8 = -480）。
+   * 仅 view=today 使用：服务端按「当地今天」换算 UTC 区间（PLAN.md §8：UTC 存储 + 设备本地时区显示）。
+   * 缺省按 UTC 天。
+   */
+  tz_offset: z.coerce.number().int().min(-840).max(840).optional(),
   list_id: uuidSchema.optional(),
   assignee_id: uuidSchema.optional(),
   status: z.union([z.enum(TASK_STATUSES), z.array(z.enum(TASK_STATUSES))]).optional(),
