@@ -8,6 +8,20 @@
       "when": 1787582925973,
       "tag": "0000_burly_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787588202990,
+      "tag": "0001_loving_mystique",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787606912968,
+      "tag": "0002_previous_masque",
+      "breakpoints": true
     }
   ]
 }

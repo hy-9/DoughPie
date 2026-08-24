@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { API_PREFIX, ROUTES } from "./routes.js";
 
+/** 收集 ROUTES 中的字符串路径（跳过参数化函数项） */
+function walkRoutes(v: unknown): string[] {
+  if (typeof v === "string") return [v];
+  if (typeof v === "function") return [];
+  if (v && typeof v === "object") return Object.values(v).flatMap(walkRoutes);
+  return [];
+}
+
 describe("路由契约", () => {
   it("参数化路由生成正确路径", () => {
     expect(ROUTES.task("t1")).toBe("/tasks/t1");
@@ -9,13 +17,7 @@ describe("路由契约", () => {
   });
 
   it("所有路由不含 /api/v1 前缀（前缀由服务端统一挂载）", () => {
-    const walk = (v: unknown): string[] => {
-      if (typeof v === "string") return [v];
-      if (typeof v === "function") return [];
-      if (v && typeof v === "object") return Object.values(v).flatMap(walk);
-      return [];
-    };
-    for (const p of walk(ROUTES)) {
+    for (const p of walkRoutes(ROUTES)) {
       expect(p.startsWith(API_PREFIX)).toBe(false);
       expect(p.startsWith("/")).toBe(true);
     }

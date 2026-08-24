@@ -1,15 +1,19 @@
-import { ROUTES, loginBodySchema, refreshBodySchema, registerBodySchema } from "@doughpie/shared";
+import {
+  ROUTES,
+  loginBodySchema,
+  logoutBodySchema,
+  refreshBodySchema,
+  registerBodySchema,
+} from "@doughpie/shared";
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { z } from "zod";
 import { parseBody } from "../lib/validate.js";
 import { requireUser } from "../plugins/auth.js";
 import type { AuthService, RequestCtx } from "../services/auth-service.js";
 
 /**
  * 认证路由（薄）：注册/登录/刷新/退出。业务逻辑全在 authService。
- * shared 未定义 logout 请求体契约（缺口已记录），就近声明。
+ * 请求体契约一律从 @doughpie/shared 导入（冻结契约，禁止本地重复声明）。
  */
-const logoutBodySchema = z.object({ refresh_token: z.string().min(1) });
 
 export function requestCtx(req: FastifyRequest): RequestCtx {
   return { ip: req.ip, deviceInfo: req.headers["user-agent"] };

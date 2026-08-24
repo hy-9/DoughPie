@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
+import { API_PREFIX } from "@doughpie/shared";
 import { buildApp } from "../src/app.js";
 import { createDb, type Db } from "../src/db.js";
 import { DEFAULT_TEST_DATABASE_URL, type AppEnv } from "../src/env.js";
@@ -18,7 +19,9 @@ export function createTestDb(): { db: Db; close: () => Promise<void> } {
 
 /** 每用例清库（CASCADE 处理外键依赖），保证用例间无共享状态 */
 export async function truncateAll(db: Db): Promise<void> {
-  await db.execute(sql`TRUNCATE TABLE refresh_tokens, user_identities, users CASCADE`);
+  await db.execute(
+    sql`TRUNCATE TABLE events, notifications, comments, subtasks, tasks, lists, invites, memberships, task_watchers, user_notification_prefs, push_tokens, workspaces, refresh_tokens, user_identities, users CASCADE`,
+  );
 }
 
 /** 测试用 AppEnv：固定密钥与阈值，可用 overrides 覆盖（如开启 UC） */
@@ -54,4 +57,28 @@ export async function buildTestApp(options?: {
     startUcPoller: false,
     logger: false,
   });
+}
+
+export const authHeader = (token: string): { authorization: string } => ({
+  authorization: `Bearer ${token}`,
+});
+
+/** 路由测试快捷搭建：注册并返回 access token 与 userId（密码固定合格值） */
+export async function registerTestUser(
+  app: FastifyInstance,
+  username: string,
+): Promise<{ accessToken: string; userId: string }> {
+  const res = await app.inject({
+    method: "POST",
+    url: `${API_PREFIX}/auth/register`,
+    payload: { username, password: "pass1234" },
+  });
+  if (res.statusCode !== 201) throw new Error(`注册测试用户失败: ${res.body}`);
+  const accessToken = (res.json() as { access_token: string }).access_token;
+  const me = await app.inject({
+    method: "GET",
+    url: `${API_PREFIX}/users/me`,
+    headers: authHeader(accessToken),
+  });
+  return { accessToken, userId: (me.json() as { id: string }).id };
 }

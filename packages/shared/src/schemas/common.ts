@@ -20,9 +20,7 @@ export interface CursorPage<T> {
   items: T[];
   /** 下一页游标；null = 没有更多了 */
   next_cursor: string | null;
-}
-
-/** 扁平错误结构（与 UC 风格一致，conventions.md §3.2） */
+} /** 扁平错误结构（与 UC 风格一致，conventions.md §3.2） */
 export const apiErrorSchema = z.object({
   code: z.string(),
   message: z.string(),

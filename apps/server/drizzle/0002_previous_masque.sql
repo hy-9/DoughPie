@@ -1,0 +1,1 @@
+ALTER TABLE "tasks" ADD COLUMN "recurrence_spawned" boolean DEFAULT false NOT NULL;

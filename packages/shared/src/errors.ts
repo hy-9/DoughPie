@@ -28,6 +28,8 @@ export const ERROR_CODES = [
   "UNBIND_FORBIDDEN",
   "SUBTASK_LIMIT",
   "RECURRENCE_INVALID",
+  /** 提及「再提醒」24h 节流（PLAN.md §5.5：同一发起人对同一提及 24h 限一次），HTTP 429 */
+  "REMIND_THROTTLED",
   "INTERNAL",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];

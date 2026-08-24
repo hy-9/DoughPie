@@ -1,6 +1,12 @@
-import { COPY, ROUTES, ssoLinkBodySchema, ssoRegisterBodySchema } from "@doughpie/shared";
+import {
+  COPY,
+  ROUTES,
+  ssoExchangeBodySchema,
+  ssoLinkBodySchema,
+  ssoRegisterBodySchema,
+  ssoStartBodySchema,
+} from "@doughpie/shared";
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import { ApiError } from "../lib/api-error.js";
 import { parseBody } from "../lib/validate.js";
 import { requireUser } from "../plugins/auth.js";
@@ -10,16 +16,8 @@ import { requestCtx } from "./auth-routes.js";
 /**
  * UC SSO 路由（backend.md §2.4/§2.9）。
  * UC_ENABLED=false 时一律 404——前端凭 sso/start 的 404 隐藏入口。
- * start/exchange 请求体 shared 未定义契约（缺口已记录），就近声明。
+ * 请求体契约一律从 @doughpie/shared 导入（冻结契约，禁止本地重复声明）。
  */
-const ssoStartBodySchema = z.object({
-  mode: z.enum(["login", "bind"]).default("login"),
-});
-
-const ssoExchangeBodySchema = z.object({
-  code: z.string().min(1),
-  state: z.string().min(1),
-});
 
 export function registerSsoRoutes(
   app: FastifyInstance,
