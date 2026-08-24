@@ -39,6 +39,8 @@ export const ROUTES = {
   workspaceInvite: (id: string, inviteId: string) =>
     `/workspaces/${id}/invites/${inviteId}` as const,
   inviteAccept: "/invites/accept",
+  /** 邀请预览：接受前展示工作区名/角色/有效期 */
+  inviteInfo: (code: string) => `/invites/${code}` as const,
 
   // ---- 清单 ----
   workspaceLists: (wsId: string) => `/workspaces/${wsId}/lists` as const,

@@ -59,6 +59,15 @@ export const acceptInviteBodySchema = z.object({
 });
 export type AcceptInviteBody = z.infer<typeof acceptInviteBodySchema>;
 
+/** 邀请预览（接受前展示，PLAN.md §8：默认 member 可选 viewer；7 天有效） */
+export const inviteInfoSchema = z.object({
+  workspace_id: z.string().uuid(),
+  workspace_name: z.string(),
+  role: z.enum(["member", "viewer"]),
+  expires_at: z.string(),
+});
+export type InviteInfo = z.infer<typeof inviteInfoSchema>;
+
 /** 成员角色变更：owner 转让是 P1，P0 只允许 member ↔ viewer */
 export const updateMemberRoleBodySchema = z.object({
   role: z.enum(["member", "viewer"]),

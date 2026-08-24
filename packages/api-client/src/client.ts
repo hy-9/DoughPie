@@ -15,6 +15,7 @@ import {
   type CursorPage,
   type EventEnvelope,
   type Invite,
+  type InviteInfo,
   type List,
   type LoginBody,
   type MarkReadBody,
@@ -279,6 +280,8 @@ export class DoughpieClient {
       this.request<void>("DELETE", ROUTES.workspaceInvite(id, inviteId)),
     acceptInvite: (body: AcceptInviteBody) =>
       this.request<Workspace>("POST", ROUTES.inviteAccept, { body }),
+    /** 邀请预览（接受前，登录后可访问） */
+    inviteInfo: (code: string) => this.request<InviteInfo>("GET", ROUTES.inviteInfo(code)),
   };
 
   // ============================== 清单 ==============================
