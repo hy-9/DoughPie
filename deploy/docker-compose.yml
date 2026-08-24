@@ -1,0 +1,65 @@
+﻿# ==========================================================================
+# 豆排排 生产编排（独立 VPS 单机，backend.md §9）
+# 用法（在 deploy/ 目录下）：
+#   docker compose --env-file ../.env -f docker-compose.yml up -d --build
+# 注意：构建上下文为仓库根目录（..），Dockerfile 在 deploy/ 下
+# ==========================================================================
+
+name: doughpie
+
+services:
+  # ---------- PostgreSQL 16（业务库 + pg-boss 队列同实例） ----------
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: doughpie
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: doughpie
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doughpie -d doughpie"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # 不暴露宿主机端口：仅 compose 内网可达
+
+  # ---------- 后端（Fastify，:8699） ----------
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/server.Dockerfile
+    restart: always
+    env_file: ../.env
+    environment:
+      # 容器内强制覆盖为内网地址（.env 里是本地开发地址）
+      DATABASE_URL: postgres://doughpie:${DB_PASSWORD}@db:5432/doughpie
+      NODE_ENV: production
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    # 不暴露宿主机端口：经 web(Caddy) 反代 /api 与 /socket.io
+
+  # ---------- Web 网关（Caddy：SPA 静态 + 反代，自动 HTTPS） ----------
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+      # 生产 SSO 时 UC 公网上游（可选；独立模式无需设置）
+      UC_UPSTREAM: ${UC_UPSTREAM:-}
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
+  uploads:

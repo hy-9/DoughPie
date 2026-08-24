@@ -1,0 +1,4 @@
+# 统一换行符：默认 LF（对齐 UC 仓库约定）
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf

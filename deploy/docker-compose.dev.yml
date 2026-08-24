@@ -1,0 +1,29 @@
+﻿# ==========================================================================
+# 豆排排 开发编排：仅起 PostgreSQL（server/web 在本机热重载开发）
+# 用法（在 deploy/ 目录下）：
+#   docker compose -f docker-compose.dev.yml up -d
+# 对应根目录 .env 的 DATABASE_URL=postgres://doughpie:doughpie_dev@localhost:5432/doughpie
+# ==========================================================================
+
+name: doughpie-dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: doughpie
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-doughpie_dev}
+      POSTGRES_DB: doughpie
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doughpie -d doughpie"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata_dev:

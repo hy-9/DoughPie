@@ -1,0 +1,47 @@
+﻿# ==========================================================================
+# 豆排排 Web 网关（Caddy 2）
+# - SPA 静态伺服（history 路由回退 /index.html）
+# - /api/* 与 /socket.io/* 反代到后端（WebSocket 自动支持）
+# - /uc/* 可选反代到统一用户中心（生产开启 SSO 且需同源时设置 UC_UPSTREAM）
+# 变量：SITE_ADDRESS（站点地址，域名则自动签发 HTTPS 证书）
+# ==========================================================================
+
+{$SITE_ADDRESS:localhost} {
+	root * /srv
+	encode zstd gzip
+
+	# API 与 WebSocket 反代
+	handle /api/* {
+		reverse_proxy server:8699
+	}
+	handle /socket.io/* {
+		reverse_proxy server:8699
+	}
+
+	# UC 同源代理（可选；UC_UPSTREAM 为空时返回 404）
+	handle /uc/* {
+		reverse_proxy {$UC_UPSTREAM} {
+			# 去掉 /uc 前缀后转发（如 /uc/oauth/authorize → /oauth/authorize）
+			rewrite * /{uri}
+		}
+	}
+
+	# SPA 回退
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+
+	# 安全响应头（与 desktop.md 的 CSP 策略配套细化）
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

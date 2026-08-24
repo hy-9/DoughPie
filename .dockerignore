@@ -1,0 +1,14 @@
+# Docker 构建上下文忽略（在仓库根执行 build，上下文为根目录）
+**/node_modules
+**/dist
+**/coverage
+.git
+docs
+uploads
+keys
+*.log
+.env
+.env.*
+apps/mobile/android
+apps/mobile/ios
+apps/desktop/src-tauri/target
