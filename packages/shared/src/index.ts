@@ -8,6 +8,7 @@ export * from "./limits.js";
 export * from "./enums.js";
 export * from "./errors.js";
 export * from "./events.js";
+export * from "./routes.js";
 export * from "./notify-matrix.js";
 export * from "./copy.js";
 export * from "./schemas/common.js";
