@@ -95,6 +95,7 @@ UC 侧 `DEMO_CLIENT_ID=doughpie` 种子，redirect_uri 白名单精确匹配 `ht
 - `POST /internal/heartbeat` / `usage-report` 请求体为**裸 JSON 数组**（非 `{items:[]}` 包裹）
 - userinfo：`{id, username, role, client_id}`，**无 email/头像**
 - Access claims：`sub/iat/exp/jti/client_id?/sid?`；错误结构扁平 `{code,message}`
+- `GET /auth/force-logout-ts` 是**按用户**查询：必带 `?user_id=<UC sub>`，响应 `{user_id, force_logout_before: RFC3339|null}`（B1 实现时对照 UC 代码核实，2026-08；待检查点①联调最终确认）
 
 ## 3. 数据模型（Drizzle 草案，v4 全量）
 

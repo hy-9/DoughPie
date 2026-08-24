@@ -16,6 +16,8 @@ export const COPY = {
     ssoLinkPrompt: "检测到统一认证首次登录，请关联已有账号或创建新账号",
     pendingSsoExpired: "登录票据已过期，请重新发起统一认证登录",
     unbindForbidden: "当前账号没有本地密码，解绑后将无法登录，请先设置本地密码",
+    identityBound: "该统一认证账号已被其他用户绑定",
+    ucUnavailable: "统一认证服务暂时不可用，请稍后再试",
   },
   common: {
     unauthorized: "请先登录",

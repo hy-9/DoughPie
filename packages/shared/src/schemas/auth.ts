@@ -86,6 +86,35 @@ export const ssoPendingSchema = z.object({
 });
 export type SsoPending = z.infer<typeof ssoPendingSchema>;
 
+/** 登出：吊销指定 refresh 串（所在会话） */
+export const logoutBodySchema = z.object({
+  refresh_token: z.string().min(1),
+});
+export type LogoutBody = z.infer<typeof logoutBodySchema>;
+
+/** SSO 起跳：mode=login 常规登录；mode=bind 已登录用户绑定 UC 身份（state 内存暂存） */
+export const ssoStartBodySchema = z.object({
+  mode: z.enum(["login", "bind"]).default("login"),
+});
+export type SsoStartBody = z.infer<typeof ssoStartBodySchema>;
+
+export const ssoStartResultSchema = z.object({
+  authorize_url: z.string().url(),
+});
+export type SsoStartResult = z.infer<typeof ssoStartResultSchema>;
+
+export const ssoExchangeBodySchema = z.object({
+  code: z.string().min(1),
+  state: z.string().min(1),
+});
+export type SsoExchangeBody = z.infer<typeof ssoExchangeBodySchema>;
+
+/** SSO exchange 响应三选一：TokenPair（已绑定）| SsoPending（未绑定）| SsoBound（bind 完成） */
+export const ssoBoundSchema = z.object({
+  bound: z.literal(true),
+});
+export type SsoBound = z.infer<typeof ssoBoundSchema>;
+
 /** 用户 DTO（不含 password_hash） */
 export const userSchema = z.object({
   id: z.string().uuid(),
