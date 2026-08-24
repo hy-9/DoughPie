@@ -7,7 +7,9 @@
   },
   "rules": {
     "no-explicit-any": "error",
-    "typescript/consistent-type-imports": "error"
+    "typescript/consistent-type-imports": "error",
+    // Fastify 原生支持 async handler（Promise 拒绝走统一错误处理），该 Express 规则误报
+    "oxc/no-async-endpoint-handlers": "off"
   },
   "ignorePatterns": ["dist", "node_modules", "coverage"]
 }
