@@ -1,0 +1,30 @@
+{
+  "name": "doughpie",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @doughpie/shared build && pnpm -r --parallel --filter './apps/*' run dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "oxfmt": "0.64.0",
+    "oxlint": "1.79.0",
+    "typescript": "5.9.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,json}": "oxfmt",
+    "*.{ts,tsx,js,mjs}": "oxlint --fix"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.5.0"
+}

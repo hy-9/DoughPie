@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# pnpm 11 默认拦截依赖构建脚本；仅放行明确需要的（esbuild 供 vite/tsx 使用）
+allowBuilds:
+  esbuild: true

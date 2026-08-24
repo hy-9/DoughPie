@@ -1,0 +1,50 @@
+# CI 门禁（conventions.md §1.3）：tsc --strict + oxlint + 单测 + 构建，全绿才算工作包完成
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CI: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    services:
+      # server 集成测试打真实 PG（conventions §5.1）
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: doughpie
+          POSTGRES_PASSWORD: doughpie_dev
+          POSTGRES_DB: doughpie_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U doughpie -d doughpie_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # pnpm -r 按拓扑序执行：shared 先于 server/web
+      - run: pnpm build
+      - run: pnpm lint
+      - run: pnpm typecheck
+        # 集成测试用库与 CI services 提供的库对应
+      - run: pnpm test
+        env:
+          TEST_DATABASE_URL: postgres://doughpie:doughpie_dev@localhost:5432/doughpie_test
+      - run: pnpm format:check
