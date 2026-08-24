@@ -102,7 +102,7 @@ cp .env.example .env
 # 2. 起开发数据库（PostgreSQL）
 docker compose -f deploy/docker-compose.dev.yml up -d
 
-# 3. 安装依赖并启动（脚手架落地后生效）
+# 3. 安装依赖并启动（server :8699 + web :5173）
 pnpm install
 pnpm dev
 ```

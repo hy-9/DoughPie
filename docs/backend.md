@@ -1,4 +1,4 @@
-﻿# 豆排排 · 后端专项文档
+# 豆排排 · 后端专项文档
 
 > 拆分自 PLAN.md v4（2026-08）。产品规格与跨端架构以 [PLAN.md](./PLAN.md) 为唯一事实源（SSOT）；
 > 本文档是后端（apps/server）实现指南。冲突时以 PLAN.md 为准。
@@ -155,6 +155,7 @@ P1 表：`task_dependencies(task_id, depends_on_id, type='fs', 防环唯一约�
 ## 7. API 约定与权限校验
 
 - 前缀 `/api/v1`；WS 走 `/socket.io`；OpenAPI JSON 供 openapi-typescript 生成 client
+- **路由路径契约**：`packages/shared/src/routes.ts`（ROUTES 常量）是 server 与 api-client 的唯一路由事实源，新增/变更路由先改它
 - 错误结构扁平 `{code, message}` + 标准 HTTP 码（与 UC 风格一致，api-client 统一处理）
 - 分页：tasks/events/notifications 游标分页；列表 50 条 + 无限滚动
 - 写操作带 `If-Match: version` 乐观锁，冲突 409（客户端强制 refetch）
