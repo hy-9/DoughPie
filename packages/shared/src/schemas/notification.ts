@@ -28,7 +28,11 @@ export const notificationSchema = z.object({
 export type Notification = z.infer<typeof notificationSchema>;
 
 export const notificationQuerySchema = cursorQuerySchema.extend({
-  unread_only: z.coerce.boolean().optional(),
+  /** 注意：不能用 z.coerce.boolean()（'false' 会被转成 true）；query 串显式 'true'/'false' */
+  unread_only: z
+    .enum(["true", "false"])
+    .transform((v) => v === "true")
+    .optional(),
   level: z.enum(NOTIFICATION_LEVELS).optional(),
   type: z.enum(NOTIFICATION_TYPES).optional(),
 });
