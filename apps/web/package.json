@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/generate-themes.mjs",
     "build": "tsc -p tsconfig.json && vite build",
+    "prebuild": "node scripts/generate-themes.mjs",
     "test": "vitest run --passWithNoTests",
     "lint": "oxlint src",
     "typecheck": "tsc -p tsconfig.json --noEmit"

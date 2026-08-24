@@ -5,6 +5,9 @@ build/
 coverage/
 .turbo/
 
+# 生成物（构建期由 themes.json 重新生成，apps/web/scripts/generate-themes.mjs）
+apps/web/src/styles/themes.css
+
 # 环境与密钥（禁止入库）
 .env
 .env.local
