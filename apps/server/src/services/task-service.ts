@@ -28,7 +28,7 @@ import {
 } from "@doughpie/shared";
 import type { Db, Tx } from "../db.js";
 import { ApiError } from "../lib/api-error.js";
-import { lists, memberships, tasks, type TaskRow } from "../models/schema.js";
+import { lists, memberships, subtasks, tasks, type TaskRow } from "../models/schema.js";
 import { writeEvent } from "./event-service.js";
 import { insertNotification } from "./notification-service.js";
 import { nextOccurrence } from "./recurrence.js";
@@ -49,7 +49,14 @@ export interface TaskServiceDeps {
 
 export type TaskService = ReturnType<typeof createTaskService>;
 
-function toTaskDto(row: TaskRow): Task {
+interface SubtaskCounts {
+  subtask_total: number;
+  subtask_done: number;
+}
+
+const ZERO_COUNTS: SubtaskCounts = { subtask_total: 0, subtask_done: 0 };
+
+function toTaskDto(row: TaskRow, counts: SubtaskCounts = ZERO_COUNTS): Task {
   return {
     id: row.id,
     workspace_id: row.workspaceId,
@@ -70,6 +77,7 @@ function toTaskDto(row: TaskRow): Task {
     created_by: row.createdBy,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
+    ...counts,
   };
 }
 
@@ -193,6 +201,29 @@ export function createTaskService(deps: TaskServiceDeps) {
     }
   }
 
+  /** 批量统计子任务进度（看板卡片 n/m）：一条分组查询，避免 N+1 */
+  async function subtaskCountsMap(taskIds: string[]): Promise<Map<string, SubtaskCounts>> {
+    const map = new Map<string, SubtaskCounts>();
+    if (taskIds.length === 0) return map;
+    const rows = await db
+      .select({
+        taskId: subtasks.taskId,
+        total: sql<number>`count(*)::int`,
+        done: sql<number>`count(*) filter (where ${subtasks.done})::int`,
+      })
+      .from(subtasks)
+      .where(inArray(subtasks.taskId, taskIds))
+      .groupBy(subtasks.taskId);
+    for (const r of rows) map.set(r.taskId, { subtask_total: r.total, subtask_done: r.done });
+    return map;
+  }
+
+  /** 单任务计数（详情/写操作返回路径） */
+  async function subtaskCountsOf(taskId: string): Promise<SubtaskCounts> {
+    const map = await subtaskCountsMap([taskId]);
+    return map.get(taskId) ?? ZERO_COUNTS;
+  }
+
   return {
     /** 新建任务：排尾；带 recurrence 必须有 due_at（契约决策，400 RECURRENCE_INVALID） */
     async createTask(userId: string, workspaceId: string, input: CreateTaskInput): Promise<Task> {
@@ -253,7 +284,7 @@ export function createTaskService(deps: TaskServiceDeps) {
     async getTask(userId: string, taskId: string): Promise<Task> {
       const task = await loadTask(taskId);
       await requireCan(db, task.workspaceId, userId, "task.read");
-      return toTaskDto(task);
+      return toTaskDto(task, await subtaskCountsOf(taskId));
     },
 
     /**
@@ -444,7 +475,7 @@ export function createTaskService(deps: TaskServiceDeps) {
           }
         }
 
-        return toTaskDto(updated);
+        return toTaskDto(updated, await subtaskCountsOf(taskId));
       });
     },
 
@@ -532,7 +563,7 @@ export function createTaskService(deps: TaskServiceDeps) {
           entityId: taskId,
           payload: { list_id: task.listId, sort_order: sortOrder },
         });
-        return toTaskDto(updated);
+        return toTaskDto(updated, await subtaskCountsOf(taskId));
       });
     },
 
@@ -680,8 +711,10 @@ export function createTaskService(deps: TaskServiceDeps) {
         .limit(q.limit + 1);
       const items = rows.slice(0, q.limit);
       const last = items[items.length - 1];
+      // 子任务进度随 DTO 带出（看板卡片 n/m）：一次分组查询覆盖本页
+      const counts = await subtaskCountsMap(items.map((t) => t.id));
       return {
-        items: items.map(toTaskDto),
+        items: items.map((t) => toTaskDto(t, counts.get(t.id) ?? ZERO_COUNTS)),
         next_cursor:
           rows.length > q.limit && last ? encodeTaskCursor(sortSpec.keyOf(last), last.id) : null,
       };

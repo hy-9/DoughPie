@@ -1,4 +1,4 @@
-import type { LoginBody, RegisterBody, User } from "@doughpie/shared";
+import type { LoginBody, RegisterBody, TokenPair, User } from "@doughpie/shared";
 import { create } from "zustand";
 import { api, UNAUTHORIZED_EVENT } from "../lib/api";
 
@@ -13,6 +13,8 @@ interface AuthState {
   bootstrap: () => Promise<void>;
   login: (body: LoginBody) => Promise<void>;
   register: (body: RegisterBody) => Promise<void>;
+  /** SSO 链路换到令牌后的统一收尾（exchange/link/register 共用） */
+  loginWithTokens: (tokens: TokenPair) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
   clear: () => void;
@@ -46,6 +48,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   register: async (body) => {
     const tokens = await api.auth.register(body);
+    localStorage.setItem("doughpie.access_token", tokens.access_token);
+    localStorage.setItem("doughpie.refresh_token", tokens.refresh_token);
+    const user = await api.users.me();
+    set({ user, status: "authed" });
+  },
+
+  loginWithTokens: async (tokens) => {
     localStorage.setItem("doughpie.access_token", tokens.access_token);
     localStorage.setItem("doughpie.refresh_token", tokens.refresh_token);
     const user = await api.users.me();

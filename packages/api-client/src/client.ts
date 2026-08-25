@@ -315,6 +315,7 @@ export class DoughpieClient {
 
   // ============================== 子任务 ==============================
   readonly subtasks = {
+    list: (taskId: string) => this.request<Subtask[]>("GET", ROUTES.taskSubtasks(taskId)),
     create: (taskId: string, body: CreateSubtaskBody) =>
       this.request<Subtask>("POST", ROUTES.taskSubtasks(taskId), { body }),
     update: (id: string, body: UpdateSubtaskBody) =>

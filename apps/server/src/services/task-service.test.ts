@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { and, eq, isNull } from "drizzle-orm";
+import { v7 as uuidv7 } from "uuid";
 import type { RecurrenceRule } from "@doughpie/shared";
 import type { Db } from "../db.js";
-import { events, notifications, tasks } from "../models/schema.js";
+import { events, notifications, subtasks, tasks } from "../models/schema.js";
 import { createTaskService, localTodayUtcRange, type TaskService } from "./task-service.js";
 import {
   insertList,
@@ -141,6 +142,34 @@ describe("任务服务（L2）", () => {
 
       await svc.deleteTask(owner.id, t.id);
       await expectApiError(svc.getTask(owner.id, t.id), 404, "NOT_FOUND");
+    });
+
+    it("DTO 携带子任务进度 subtask_done/subtask_total（看板卡片 n/m，web.md §4）", async () => {
+      const { owner, ws, list } = await setup();
+      const t = await svc.createTask(owner.id, ws.id, { list_id: list.id, title: "带子任务" });
+      // 直接落库两个子任务（一个完成）
+      await db.insert(subtasks).values([
+        { id: uuidv7(), taskId: t.id, title: "s1", done: true, sortOrder: 1000 },
+        { id: uuidv7(), taskId: t.id, title: "s2", done: false, sortOrder: 2000 },
+      ]);
+
+      const page = await svc.queryTasks(owner.id, ws.id, {
+        limit: 50,
+        sort: "sort_order",
+        order: "asc",
+      });
+      const item = page.items.find((i) => i.id === t.id);
+      expect(item?.subtask_total).toBe(2);
+      expect(item?.subtask_done).toBe(1);
+
+      const detail = await svc.getTask(owner.id, t.id);
+      expect(detail.subtask_total).toBe(2);
+      expect(detail.subtask_done).toBe(1);
+
+      // 无子任务任务为 0/0（新建路径零计数）
+      const bare = await svc.createTask(owner.id, ws.id, { list_id: list.id, title: "裸任务" });
+      expect(bare.subtask_total).toBe(0);
+      expect(bare.subtask_done).toBe(0);
     });
   });
 

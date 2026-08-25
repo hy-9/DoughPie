@@ -75,3 +75,32 @@ export function isOverdue(iso: string | null): boolean {
   const t = new Date(iso).getTime();
   return !Number.isNaN(t) && t < Date.now();
 }
+
+/** 仅时间：14:32（提及确认 chips 等场景） */
+export function formatTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+/** 补零（模块级，避免每次调用重建） */
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** ISO 串 → <input type="datetime-local"> 值（本地时区 yyyy-MM-ddTHH:mm；空值 → 空串） */
+export function toLocalInputValue(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** datetime-local 值 → ISO 串（本地时区转 UTC；空串/非法 → null） */
+export function fromLocalInputValue(value: string): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}

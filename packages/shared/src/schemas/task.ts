@@ -68,6 +68,9 @@ export const taskSchema = z.object({
   recurrence: recurrenceRuleSchema.nullable(),
   sort_order: z.number(),
   version: z.number().int(),
+  /** 看板卡片子任务进度 n/m（web.md §4 卡片要素）：服务端随 DTO 计算 */
+  subtask_total: z.number().int(),
+  subtask_done: z.number().int(),
   completed_at: z.string().nullable(),
   completed_by: uuidSchema.nullable(),
   created_by: uuidSchema,
