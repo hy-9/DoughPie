@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { NoWorkspacePrompt } from "../components/layout/no-workspace-prompt";
 import {
   DEFAULT_FILTER,
   TaskFilterBar,
@@ -16,13 +17,25 @@ import { useLists } from "../hooks/use-lists";
  */
 export function ListPage() {
   const { listId } = useParams<{ listId: string }>();
-  const { workspace } = useCurrentWorkspace();
-  const { data: lists, isLoading } = useLists(workspace?.id);
+  const { workspace, isLoading: wsLoading } = useCurrentWorkspace();
+  const { data: lists, isLoading: listsLoading } = useLists(workspace?.id);
   const [filter, setFilter] = useState<FilterValue>(DEFAULT_FILTER);
 
   const list = lists?.find((l) => l.id === listId);
 
-  if (!workspace || isLoading) {
+  if (wsLoading) {
+    return (
+      <div className="space-y-3 p-4">
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!workspace) return <NoWorkspacePrompt />;
+
+  if (listsLoading) {
     return (
       <div className="space-y-3 p-4">
         <Skeleton className="h-7 w-48" />

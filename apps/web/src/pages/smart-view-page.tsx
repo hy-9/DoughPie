@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NoWorkspacePrompt } from "../components/layout/no-workspace-prompt";
 import {
   DEFAULT_FILTER,
   TaskFilterBar,
@@ -20,10 +21,10 @@ const VIEW_TITLE = {
  * view=today 的 tz_offset 由 useTasksQuery 统一注入（设备本地时区，PLAN.md §8）。
  */
 export function SmartViewPage({ view }: { view: "today" | "mine" | "overdue" }) {
-  const { workspace } = useCurrentWorkspace();
+  const { workspace, isLoading } = useCurrentWorkspace();
   const [filter, setFilter] = useState<FilterValue>(DEFAULT_FILTER);
 
-  if (!workspace) {
+  if (isLoading) {
     return (
       <div className="space-y-3 p-4">
         <Skeleton className="h-7 w-48" />
@@ -31,6 +32,8 @@ export function SmartViewPage({ view }: { view: "today" | "mine" | "overdue" }) 
       </div>
     );
   }
+
+  if (!workspace) return <NoWorkspacePrompt />;
 
   return (
     <div className="space-y-3 p-4">

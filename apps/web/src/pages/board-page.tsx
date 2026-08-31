@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { CreateWorkspaceDialog } from "../components/layout/create-workspace-dialog";
+import { NoWorkspacePrompt } from "../components/layout/no-workspace-prompt";
 import { KanbanBoard } from "../components/task/kanban-board";
-import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { useCurrentWorkspace } from "../hooks/use-current-workspace";
 
@@ -10,7 +8,6 @@ import { useCurrentWorkspace } from "../hooks/use-current-workspace";
  */
 export function BoardPage() {
   const { workspace, isLoading } = useCurrentWorkspace();
-  const [createOpen, setCreateOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -22,16 +19,7 @@ export function BoardPage() {
     );
   }
 
-  if (!workspace) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3">
-        <p className="text-lg font-semibold">欢迎使用豆排排</p>
-        <p className="text-[13px] text-muted-foreground">创建第一个工作区，或等待同事邀请你加入</p>
-        <Button onClick={() => setCreateOpen(true)}>新建工作区</Button>
-        <CreateWorkspaceDialog open={createOpen} onOpenChange={setCreateOpen} />
-      </div>
-    );
-  }
+  if (!workspace) return <NoWorkspacePrompt />;
 
   return <KanbanBoard workspace={workspace} />;
 }

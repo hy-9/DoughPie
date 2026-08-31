@@ -122,7 +122,10 @@ export class DoughpieClient {
     this.baseUrl = (options.baseUrl ?? "") + API_PREFIX;
     this.tokenStore = options.tokenStore;
     this.onUnauthorized = options.onUnauthorized;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // 必须包一层箭头函数：`this.fetchImpl(...)` 会把 this 绑成 client。
+    // 浏览器原生 fetch 要求 this 为 Window，否则 Illegal invocation，注册/登录表现为「服务器开小差了」。
+    const nativeFetch = options.fetchImpl ?? fetch;
+    this.fetchImpl = ((input, init) => nativeFetch(input, init)) as typeof fetch;
   }
 
   private async rawRequest(

@@ -123,4 +123,19 @@ describe("api-client 请求构造", () => {
     await client.tasks.update("t1", { title: "新标题" }, 3);
     expect((calls[0]!.init.headers as Record<string, string>)["If-Match"]).toBe("3");
   });
+
+  it("function 风格 fetchImpl 被调用时 this 不是 client（避免浏览器 Illegal invocation）", async () => {
+    const thisValues: unknown[] = [];
+    const store = new MemoryTokenStore();
+    const client = new DoughpieClient({
+      tokenStore: store,
+      fetchImpl: async function (this: unknown, _url: string | URL | Request) {
+        thisValues.push(this);
+        return json(TOKENS);
+      } as typeof fetch,
+    });
+    await client.auth.register({ username: "doufu", password: "abc12345" });
+    expect(thisValues).toHaveLength(1);
+    expect(thisValues[0]).not.toBe(client);
+  });
 });
