@@ -84,7 +84,7 @@ MCP Tasks 扩展（见 mcp.md §7）
 | 层 | 选型 | 决策理由 |
 |---|---|---|
 | Monorepo | pnpm workspace | apps/{server,web,mobile,desktop} + packages/{shared,api-client} |
-| 后端 | Node 20 + TypeScript + Fastify（先 TS，尖点后期斟酌 Rust 化） | 详见 backend.md |
+| 后端 | Node 22 + TypeScript + Fastify（先 TS，尖点后期斟酌 Rust 化） | 详见 backend.md |
 | ORM/DB | Drizzle + PostgreSQL 16 | 迁移轻、SQL 味重；不引入 Redis |
 | 队列/定时 | pg-boss | 复用 PG |
 | 密码哈希 | @node-rs/argon2 | 与 UC 同算法家族 |

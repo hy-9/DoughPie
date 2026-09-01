@@ -71,7 +71,7 @@ Claude Desktop 等 stdio 客户端即装即用。详见 [docs/mcp.md](./docs/mcp
 
 | 层 | 选型 |
 |---|---|
-| 后端 | Node 20 + TypeScript + Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO |
+| 后端 | Node 22 + TypeScript + Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO |
 | Web | Vite + React 18 + shadcn/ui + TanStack Query（兼作桌面/PWA 载体） |
 | 移动端 | Expo（React Native，SDK 57）+ Expo Push |
 | PC 桌面 | Tauri 2（复用 Web 构建产物） |
@@ -93,7 +93,7 @@ Claude Desktop 等 stdio 客户端即装即用。详见 [docs/mcp.md](./docs/mcp
 
 ## 🚀 快速开始
 
-环境要求：Node 20+ / pnpm / Docker
+环境要求：Node 22.13+ / pnpm 11 / Docker
 
 ```bash
 # 1. 配置环境变量

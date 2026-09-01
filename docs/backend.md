@@ -9,7 +9,7 @@
 
 | 组件 | 选型 | 备注 |
 |---|---|---|
-| 运行时/框架 | Node 20 + TypeScript + Fastify | 轻、快、插件体系干净 |
+| 运行时/框架 | Node 22 + TypeScript + Fastify | 轻、快、插件体系干净 |
 | ORM/DB | Drizzle + PostgreSQL 16 | 迁移轻；不引入 Redis |
 | 队列/定时 | pg-boss | 复用 PG；提醒扫描与一次性投递 job |
 | 密码哈希 | @node-rs/argon2 | 与 UC 同算法家族 |

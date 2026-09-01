@@ -23,7 +23,7 @@
 
 | 层 | 选型 |
 |---|---|
-| 后端 | Node 20 + TypeScript（strict）+ Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO · @node-rs/argon2 |
+| 后端 | Node 22 + TypeScript（strict）+ Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO · @node-rs/argon2 |
 | Web | Vite + React 18 + shadcn/ui + TanStack Query + Zustand + dnd-kit + cmdk |
 | 移动端 | Expo（RN，SDK 57）+ expo-notifications |
 | 桌面 | Tauri 2（2.11.x） |

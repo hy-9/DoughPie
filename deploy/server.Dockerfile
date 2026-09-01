@@ -5,7 +5,7 @@
 # ==========================================================================
 
 # ---------- 构建阶段 ----------
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable
 
@@ -25,7 +25,7 @@ RUN pnpm -r --filter @doughpie/shared --filter @doughpie/server build
 RUN pnpm deploy --filter @doughpie/server --prod /prod/server
 
 # ---------- 运行阶段 ----------
-FROM node:20-alpine
+FROM node:22-alpine
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /prod/server ./

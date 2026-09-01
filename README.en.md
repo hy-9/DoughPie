@@ -77,7 +77,7 @@ See [docs/mcp.md](./docs/mcp.md).
 
 | Layer | Choice |
 |---|---|
-| Backend | Node 20 + TypeScript + Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO |
+| Backend | Node 22 + TypeScript + Fastify · Drizzle + PostgreSQL 16 · pg-boss · Socket.IO |
 | Web | Vite + React 18 + shadcn/ui + TanStack Query (also powers desktop & PWA) |
 | Mobile | Expo (React Native, SDK 57) + Expo Push |
 | Desktop | Tauri 2 (reuses the web build) |
@@ -99,7 +99,7 @@ See [docs/mcp.md](./docs/mcp.md).
 
 ## 🚀 Quick start
 
-Requirements: Node 20+ / pnpm / Docker
+Requirements: Node 22.13+ / pnpm 11 / Docker
 
 ```bash
 # 1. Configure environment
