@@ -328,7 +328,6 @@ export function createTaskService(deps: TaskServiceDeps) {
 
       return db.transaction(async (tx) => {
         const set: Partial<typeof tasks.$inferInsert> = {
-          updatedAt: now,
           version: task.version + 1,
         };
         if (body.title !== undefined) set.title = body.title;
@@ -356,9 +355,10 @@ export function createTaskService(deps: TaskServiceDeps) {
         }
 
         // 乐观锁：版本不符/已被并发删除 → 0 行；区分 409 / 404
+        // updatedAt 用 DB 时钟（与 insert 的 defaultNow 同源），避免应用/库双时钟漂移导致比较失真
         const updatedRows = await tx
           .update(tasks)
-          .set(set)
+          .set({ ...set, updatedAt: sql`now()` })
           .where(and(eq(tasks.id, taskId), eq(tasks.version, ifMatch), isNull(tasks.deletedAt)))
           .returning();
         const updated = updatedRows[0];
@@ -486,7 +486,7 @@ export function createTaskService(deps: TaskServiceDeps) {
       await db.transaction(async (tx) => {
         await tx
           .update(tasks)
-          .set({ deletedAt: new Date(), updatedAt: new Date() })
+          .set({ deletedAt: new Date(), updatedAt: sql`now()` })
           .where(eq(tasks.id, taskId));
         await writeEvent(tx, {
           workspaceId: task.workspaceId,
@@ -551,7 +551,7 @@ export function createTaskService(deps: TaskServiceDeps) {
 
         const [updated] = await tx
           .update(tasks)
-          .set({ sortOrder, updatedAt: new Date() })
+          .set({ sortOrder, updatedAt: sql`now()` })
           .where(eq(tasks.id, taskId))
           .returning();
         if (!updated) throw new ApiError(404, "NOT_FOUND", COPY.common.notFound);

@@ -71,6 +71,7 @@ L2 service 业务流测试先行；L3 routes/UI 后补；L4 不测
 - **通知等级决定推送**：🔴 系统推送+站内 / 🟠 站内+可选 / ⚪ 仅站内；提及永不自动已读（须点「收到」）
 - **重复任务**：仅 done 触发下一实例（review 不算完成）；基准=计划时间；monthly 月末 clamp；时间全 UTC
 - **乐观锁**：写操作带 `If-Match: version`，409 强制 refetch；排序冲突后写者胜
+- **`updated_at` 一律 DB 时钟**：insert 靠 `defaultNow()`、update 写 `` sql`now()` ``，禁 JS `new Date()` 赋值（防双时钟漂移，详见 conventions.md §3.4）
 - **单进程假设**：内存限流/presence/force-logout 缓存可接受；不引 Redis
 - **UC 契约以本地代码为准**（`C:\code\Rust\salvo\hello`）：`/oauth/token` 无 grant_type；心跳/用量上报是裸数组
 

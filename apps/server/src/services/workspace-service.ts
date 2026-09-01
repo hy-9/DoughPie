@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import {
   COPY,
@@ -110,7 +110,7 @@ async function removeMembershipTx(
   // 被移除/退出者负责任务自动置未分配（含已完成任务的历史负责人也清空，保持成员域一致）
   const affected = await tx
     .update(tasks)
-    .set({ assigneeId: null, updatedAt: new Date() })
+    .set({ assigneeId: null, updatedAt: sql`now()` })
     .where(
       and(
         eq(tasks.workspaceId, input.workspaceId),
@@ -195,6 +195,12 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       return rows.map((r) => toWorkspaceDto(r.workspace));
     },
 
+    /** 详情（三角色可读，设置页用）；非成员统一 403（不暴露存在性，guard 约定） */
+    async getById(userId: string, workspaceId: string): Promise<Workspace> {
+      await requireCan(db, workspaceId, userId, "workspace.read");
+      return toWorkspaceDto(await loadWorkspace(workspaceId));
+    },
+
     /** 重命名（仅 owner） */
     async rename(
       userId: string,
@@ -202,11 +208,11 @@ export function createWorkspaceService(deps: WorkspaceServiceDeps) {
       body: UpdateWorkspaceBody,
     ): Promise<Workspace> {
       await requireCan(db, workspaceId, userId, "workspace.update");
-      const now = new Date();
       const [updated] = await db.transaction(async (tx) => {
         const rows = await tx
           .update(workspaces)
-          .set({ name: body.name, updatedAt: now })
+          // updatedAt 用 DB 时钟（与 insert 的 defaultNow 同源），避免应用/库双时钟漂移导致比较失真
+          .set({ name: body.name, updatedAt: sql`now()` })
           .where(eq(workspaces.id, workspaceId))
           .returning();
         if (rows.length === 0) throw new ApiError(404, "NOT_FOUND", COPY.common.notFound);

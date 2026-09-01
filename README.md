@@ -102,7 +102,10 @@ cp .env.example .env
 # 2. 起开发数据库（PostgreSQL）
 docker compose -f deploy/docker-compose.dev.yml up -d
 
-# 3. 安装依赖并启动（server :8699 + web :5173）
+# 3. 创建测试库（仅首次；跑 pnpm test 需要，等容器 healthy 后再执行）
+docker compose -f deploy/docker-compose.dev.yml exec db psql -U doughpie -d doughpie -c "CREATE DATABASE doughpie_test;"
+
+# 4. 安装依赖并启动（server :8699 + web :5173）
 pnpm install
 pnpm dev
 ```
@@ -122,7 +125,9 @@ npx todomcp-mcp --url https://todo.你的域名/mcp --token <你的token>
 
 ## 📌 项目状态
 
-规格与文档已完备（七轮需求对齐定稿），当前处于 **A 阶段（脚手架 + 契约冻结）**前夕。
+规格与文档已完备（七轮需求对齐定稿）。**P0 中期**：
+A（脚手架 + 契约冻结）、B1（双模式认证）、B2（领域层）、B3（Web 骨架）、B4（CI 门禁 + Compose）已合入；
+下一步 D（看板拖拽 + 实时层）→ E（通知引擎 + 推送）→ F（附件）。
 路线图与里程碑见 [docs/PLAN.md](./docs/PLAN.md) §9。
 
 ## 许可

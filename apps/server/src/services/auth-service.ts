@@ -1,5 +1,5 @@
 import { hash as argon2Hash, verify as argon2Verify } from "@node-rs/argon2";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import {
   COPY,
@@ -175,7 +175,8 @@ export function createAuthService(deps: AuthServiceDeps) {
     async updateMe(userId: string, body: UpdateMeBody): Promise<User> {
       const [updated] = await db
         .update(users)
-        .set({ displayName: body.display_name, updatedAt: new Date() })
+        // updatedAt 用 DB 时钟（与 insert 的 defaultNow 同源），避免应用/库双时钟漂移导致比较失真
+        .set({ displayName: body.display_name, updatedAt: sql`now()` })
         .where(eq(users.id, userId))
         .returning();
       if (!updated) throw new ApiError(404, "NOT_FOUND", COPY.common.notFound);
@@ -197,7 +198,7 @@ export function createAuthService(deps: AuthServiceDeps) {
       }
       await db
         .update(users)
-        .set({ passwordHash: await argon2Hash(body.new_password), updatedAt: new Date() })
+        .set({ passwordHash: await argon2Hash(body.new_password), updatedAt: sql`now()` })
         .where(eq(users.id, userId));
       await tokenService.revokeAllUserSessions(userId);
     },

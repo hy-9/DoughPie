@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, eq, isNull, ne, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import {
   COPY,
@@ -140,14 +140,14 @@ export function createListService(deps: ListServiceDeps) {
     async updateList(userId: string, listId: string, body: UpdateListBody): Promise<List> {
       const list = await loadList(listId);
       await requireCan(db, list.workspaceId, userId, "list.write");
-      const now = new Date();
       const [updated] = await db.transaction(async (tx) => {
         const rows = await tx
           .update(lists)
           .set({
             ...(body.name !== undefined ? { name: body.name } : {}),
             ...(body.color !== undefined ? { color: body.color } : {}),
-            updatedAt: now,
+            // updatedAt 用 DB 时钟（与 insert 的 defaultNow 同源），避免应用/库双时钟漂移导致比较失真
+            updatedAt: sql`now()`,
           })
           .where(eq(lists.id, listId))
           .returning();
@@ -176,7 +176,7 @@ export function createListService(deps: ListServiceDeps) {
       await db.transaction(async (tx) => {
         const affected = await tx
           .update(tasks)
-          .set({ deletedAt: new Date(), updatedAt: new Date() })
+          .set({ deletedAt: new Date(), updatedAt: sql`now()` })
           .where(and(eq(tasks.listId, listId), isNull(tasks.deletedAt)))
           .returning({ id: tasks.id, title: tasks.title });
         for (const t of affected) {
@@ -228,7 +228,7 @@ export function createListService(deps: ListServiceDeps) {
         if (sortOrder === null) throw new ApiError(500, "INTERNAL", COPY.common.internal);
         const [updated] = await tx
           .update(lists)
-          .set({ sortOrder, updatedAt: new Date() })
+          .set({ sortOrder, updatedAt: sql`now()` })
           .where(eq(lists.id, listId))
           .returning();
         if (!updated) throw new ApiError(404, "NOT_FOUND", COPY.common.notFound);

@@ -46,6 +46,11 @@ export function registerWorkspaceRoutes(
     return workspaceService.listMine(requireUser(req).id);
   });
 
+  app.get(workspacePath, { preHandler: auth }, async (req) => {
+    const { id } = parseBody(workspaceParamsSchema, req.params);
+    return workspaceService.getById(requireUser(req).id, id);
+  });
+
   app.patch(workspacePath, { preHandler: auth }, async (req) => {
     const { id } = parseBody(workspaceParamsSchema, req.params);
     const body = parseBody(updateWorkspaceBodySchema, req.body);

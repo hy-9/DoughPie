@@ -102,6 +102,24 @@ describe("工作区/成员/邀请服务（L2）", () => {
     expect(members[1]).toMatchObject({ user_id: viewer.id, role: "viewer" });
   });
 
+  it("详情：三角色成员均可读（workspace.read）；非成员与不存在的 id 统一 403", async () => {
+    const owner = await insertUser(db);
+    const member = await insertUser(db);
+    const viewer = await insertUser(db);
+    const outsider = await insertUser(db);
+    const ws = await insertWorkspace(db, owner, "详情区");
+    await insertMembership(db, ws.id, member.id, "member");
+    await insertMembership(db, ws.id, viewer.id, "viewer");
+
+    for (const u of [owner, member, viewer]) {
+      const got = await svc.getById(u.id, ws.id);
+      expect(got).toMatchObject({ id: ws.id, name: "详情区", owner_id: owner.id });
+    }
+    // 非成员（无论工作区是否存在）统一 403，不暴露存在性（workspace-guard 约定）
+    await expectApiError(svc.getById(outsider.id, ws.id), 403, "FORBIDDEN");
+    await expectApiError(svc.getById(outsider.id, crypto.randomUUID()), 403, "FORBIDDEN");
+  });
+
   it("角色变更 member→viewer：写 member.role_changed 事件 + 给当事人发 system 通知", async () => {
     const owner = await insertUser(db);
     const member = await insertUser(db);

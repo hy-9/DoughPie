@@ -80,6 +80,41 @@ describe("工作区与邀请路由（L3）", () => {
     expect(members.json()[0].role).toBe("owner");
   });
 
+  it("详情：成员可读（契约形状）；非成员 → 403；未认证 → 401", async () => {
+    const alice = await registerTestUser(app, "alice");
+    const bob = await registerTestUser(app, "bob");
+
+    const created = await app.inject({
+      method: "POST",
+      url: `${API_PREFIX}/workspaces`,
+      headers: authHeader(alice.accessToken),
+      payload: { name: "详情区" },
+    });
+    const wsId = created.json().id as string;
+
+    const detail = await app.inject({
+      method: "GET",
+      url: `${API_PREFIX}/workspaces/${wsId}`,
+      headers: authHeader(alice.accessToken),
+    });
+    expect(detail.statusCode).toBe(200);
+    expect(workspaceSchema.safeParse(detail.json()).success).toBe(true);
+    expect(detail.json()).toMatchObject({ id: wsId, name: "详情区" });
+
+    const outsider = await app.inject({
+      method: "GET",
+      url: `${API_PREFIX}/workspaces/${wsId}`,
+      headers: authHeader(bob.accessToken),
+    });
+    expect(outsider.statusCode).toBe(403);
+
+    const anonymous = await app.inject({
+      method: "GET",
+      url: `${API_PREFIX}/workspaces/${wsId}`,
+    });
+    expect(anonymous.statusCode).toBe(401);
+  });
+
   it("未认证 → 401；空名 → 400", async () => {
     const anonymous = await app.inject({ method: "GET", url: `${API_PREFIX}/workspaces` });
     expect(anonymous.statusCode).toBe(401);

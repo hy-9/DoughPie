@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { hash as argon2Hash } from "@node-rs/argon2";
-import { and, asc, count, eq, ne } from "drizzle-orm";
+import { and, asc, count, eq, ne, sql } from "drizzle-orm";
 import {
   COPY,
   type AdminResetPasswordResult,
@@ -74,7 +74,8 @@ export function createAdminService(deps: AdminServiceDeps) {
         .set({
           ...(body.status !== undefined ? { status: body.status } : {}),
           ...(body.role !== undefined ? { role: body.role } : {}),
-          updatedAt: new Date(),
+          // updatedAt 用 DB 时钟（与 insert 的 defaultNow 同源），避免应用/库双时钟漂移导致比较失真
+          updatedAt: sql`now()`,
         })
         .where(eq(users.id, targetId))
         .returning();
@@ -97,7 +98,7 @@ export function createAdminService(deps: AdminServiceDeps) {
       const tempPassword = generateTempPassword();
       await db
         .update(users)
-        .set({ passwordHash: await argon2Hash(tempPassword), updatedAt: new Date() })
+        .set({ passwordHash: await argon2Hash(tempPassword), updatedAt: sql`now()` })
         .where(eq(users.id, targetId));
       await tokenService.revokeAllUserSessions(targetId);
       return { temp_password: tempPassword };

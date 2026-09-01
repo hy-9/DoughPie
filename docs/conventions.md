@@ -108,6 +108,15 @@ tag v*  → Release 流水线：桌面安装包 + APK → GitHub Releases
 - 密钥/证书只进 `.env` 与 CI secrets；**任何代码、测试、文档中禁止出现真实密钥**
 - 日志：pino，中文消息，request-id 贯穿；禁止打印 token/密码全文
 
+### 3.4 时间戳纪律（DB 时钟单源）
+
+- **`updated_at` 一律 DB 时钟**：insert 靠 schema `defaultNow()`；update 写 `` sql`now()` ``，
+  **禁止 JS 侧 `new Date()` 赋值**
+- 理由：应用进程与 PG 可能不同时钟（Windows 开发机 WSL2 漂移高发），双源写入会让
+  跨行时间戳比较偶发失真（2026-09 因此产生 flaky 测试事故，已全仓统一修复）
+- 业务时间字段（`completed_at`/`deleted_at` 等）JS 单源写入不受此限；
+  一旦出现跨时钟源比较需求，即升级为 DB 时钟
+
 ## 4. AI 使用规范（本项目 AI 全量实现，本节即生产纪律）
 
 ### 4.1 开工仪式（每个 AI 会话/工作包开始前必做）
